@@ -8,8 +8,9 @@ load_dotenv()
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
-    ORKES_BASE_URL: str = "https://your-orkes-instance.com"
-    ORKES_API_KEY: str = "your-orkes-api-key-here"
+    ORKES_BASE_URL: str = "https://developer.orkescloud.com/api/"
+    ORKES_KEY_ID: str = "47hs2be26735-4ee7-11f0-a795-d685533af8e3"
+    ORKES_KEY_SECRET: str = "kosQVUbCtvFarR8AmaG8RWomGLtm67ulTJWMUlLZIxoMkEXk"
     DEBUG: bool = False
     
     class Config:
