@@ -23,6 +23,9 @@ from scripts.fetch_repo_data import GitHubRepoFetcher  # Import the class
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+
+from scripts.text2speech import get_audio_file
+
 load_dotenv()
 
 os.environ['CONDUCTOR_SERVER_URL'] = os.getenv('CONDUCTOR_SERVER_URL', 'https://developer.orkescloud.com/api')
@@ -30,7 +33,7 @@ os.environ['CONDUCTOR_AUTH_KEY'] = os.getenv('CONDUCTOR_AUTH_KEY')
 os.environ['CONDUCTOR_AUTH_SECRET'] = os.getenv('CONDUCTOR_AUTH_SECRET')
 
 
-@worker_task(task_definition_name='simple')
+@worker_task(task_definition_name='GithubDetails')
 def task(github_url: str = None, lang: str = None, ):
     """
     Orkes worker task to fetch GitHub repository data.
@@ -67,8 +70,10 @@ def text2speech(summary: str = None, lang: str = None, ):
     print('processing task with summary:', summary, "language:", lang)
     try:
         summary = json.loads(summary)
-        s3link = text2speech(summary)
+        print('Summary loaded:')
+        s3link = get_audio_file(summary)
     except Exception as e:
+        print("Error processing summary:", e)
         return "Sorry I could not parse the summary. Please try again."
 
     print("processing task with summary:", summary)

@@ -20,7 +20,7 @@ load_dotenv()
 
 # Alternate voices: host = 'ava', expert = 'clio'
 def get_voice(index):
-    return "brandon" if index % 2 == 0 else "juniper"
+    return "brandon" if index % 2 == 0 else "elowen"
 
 # ------------------ ASYNC LMNT REQUEST ------------------
 async def fetch_tts(session, text, voice):
@@ -76,7 +76,7 @@ def merge_and_upload(audio_chunks):
     return f"https://{AWS_S3_BUCKET}.s3.amazonaws.com/{AWS_S3_KEY}"
 
 # ------------------ ENTRY POINT ------------------
-def text2speech(conversation:List[str]):
+def get_audio_file(conversation:List[str]):
     try:
         audio_results = asyncio.run(process_conversation(conversation))
         final_url = merge_and_upload(audio_results)
