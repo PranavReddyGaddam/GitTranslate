@@ -27,12 +27,13 @@ os.environ['CONDUCTOR_AUTH_KEY'] = os.getenv('CONDUCTOR_AUTH_KEY')
 os.environ['CONDUCTOR_AUTH_SECRET'] = os.getenv('CONDUCTOR_AUTH_SECRET')
 
 @worker_task(task_definition_name='simple')
-def task(task):
+def task(github_url: str = None, lang: str = None, ):
     """
     Orkes worker task to fetch GitHub repository data.
     Takes a GitHub repo URL as input from the task.
     """
-    github_repo_url = task.input_data.get('github_repo_url')
+    github_repo_url = github_url
+    print("processing task with github_repo_url:", github_repo_url)
     if not github_repo_url:
         return {
             'status': 'FAILED',
