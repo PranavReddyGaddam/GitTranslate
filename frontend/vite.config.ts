@@ -9,7 +9,7 @@ export default defineConfig({
       // Proxy any browser request to /api/generate
       '/api/generate': {
         // Forward it to your HTTP backend
-        target: 'http://3.95.215.8:8000',
+        target: 'http://3.95.215.8',
         // Rewrite the Host header to match the target
         changeOrigin: true,
         // Allow self-signed or invalid certs (not needed for plain HTTP)
