@@ -10,30 +10,86 @@ function App() {
   const [audioUrl, setAudioUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const [workflowId, setWorkflowId] = useState("");
 
   const handlePodcastGeneration = async (repoUrl: string, language: string) => {
     setIsGenerating(true);
     setShowAudioPlayer(false);
-    console.log("Generating podcast for:", repoUrl, "in", language);
-    
-    // Dummy generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setAudioUrl("/podcast.mp3");
-    setShowAudioPlayer(true);
-    setIsGenerating(false);
-  };
+    setWorkflowId("");
 
-  useEffect(() => {
-    if ((isGenerating || showAudioPlayer) && playerContainerRef.current) {
-      setTimeout(() => {
+    // Scroll the loading message into view
+    setTimeout(() => {
         playerContainerRef.current?.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
         });
       }, 100);
+
+    try {
+      const response = await fetch("http://3.95.215.8:8000/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          repo_url: repoUrl,
+          language: language
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setWorkflowId(data.workflow_id);
+
+    } catch (error) {
+      console.error("Failed to start podcast generation:", error);
+      alert("Sorry, something went wrong. Please try again later.");
+      setIsGenerating(false);
     }
-  }, [isGenerating, showAudioPlayer]);
+  };
+  
+  const checkWorkflowStatus = async (id: string) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/status/${id}`);
+
+      if (!response.ok) {
+        if (response.status !== 404) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data && data.result) {
+        setAudioUrl(data.result);
+        setShowAudioPlayer(true);
+        setIsGenerating(false);
+        setWorkflowId("");
+      } else {
+        console.log("Workflow status:", data.status || "In progress");
+      }
+
+    } catch (error) {
+      console.error("Error checking workflow status:", error);
+      alert("There was an error retrieving the podcast. Please try again.");
+      setIsGenerating(false);
+      setWorkflowId("");
+    }
+  };
+
+  useEffect(() => {
+    if (workflowId) {
+      const intervalId = setInterval(() => {
+        checkWorkflowStatus(workflowId);
+      }, 3000);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [workflowId]);
 
   return (
     <main

@@ -21,10 +21,18 @@ def create_app() -> FastAPI:
         description="Gateway API that triggers and monitors Orkes workflows for GitTranslate."
     )
 
+    # Define allowed origins
+    origins = [
+        "http://localhost:5174",  # Local React dev server
+        "http://localhost:3000",  # Common alternative for local dev
+        "https://git-cast.vercel.app", # Your production frontend
+        # Add any other frontend URLs here
+    ]
+
     # CORS: allow frontend (e.g., Vercel) to call this API
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # TODO: tighten for production
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
