@@ -17,14 +17,18 @@ async def generate_podcast(req: GenerateRequest):
     Returns the workflow ID to be used for status polling.
     """
     try:
-        # For testing purposes, return a mock workflow ID
-        # TODO: Uncomment the actual workflow call when Orkes is configured
-        # workflow_id = start_workflow(
-        #     repo_url=str(req.repo_url),
-        # )
-        # return {"workflow_id": workflow_id}
+        print(f"🚀 Starting workflow for repo: {req.repo_url}")
         
-        # Mock response for testing
-        return {"workflow_id": "test-workflow-123"}
+        workflow_id = start_workflow(
+            repo_url=str(req.repo_url),
+        )
+        
+        print(f"✅ Workflow started successfully!")
+        print(f"📋 Workflow ID: {workflow_id}")
+        print(f"📊 Check status at: GET /api/status/{workflow_id}")
+        print("-" * 50)
+        
+        return {"workflow_id": workflow_id}
     except Exception as e:
+        print(f"❌ Failed to start workflow: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

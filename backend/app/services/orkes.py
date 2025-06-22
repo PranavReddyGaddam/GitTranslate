@@ -2,6 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 Thin wrapper around the Orkes Conductor REST API.
 Responsible for:
+  • Getting authentication token
   • Triggering a workflow (start_workflow)
   • Polling workflow status / output (get_workflow_status)
 
@@ -14,20 +15,38 @@ import logging
 import base64
 import io
 from typing import Any, Dict
+import json
 
 import requests
 from requests import HTTPError
 
-from app.utils.config import settings  # Expects ORKES_BASE_URL and ORKES_API_KEY
+from app.utils.config import settings  # Expects ORKES_KEY_ID and ORKES_KEY_SECRET
 
 logger = logging.getLogger(__name__)
 
-WORKFLOW_NAME = "generate_git_podcast"  # Update if your workflow name differs
-HEADERS = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Authorization": f"Bearer {settings.ORKES_API_KEY}",
-}
+WORKFLOW_NAME = "claude_to_gemini_using_integration"  # Update if your workflow name differs
+ORKES_BASE_URL = "https://developer.orkescloud.com"
+
+def get_orkes_token() -> str:
+    """Get authentication token from Orkes."""
+    url = f"{ORKES_BASE_URL}/api/token"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    data = {
+        "keyId": settings.ORKES_KEY_ID,
+        "keySecret": settings.ORKES_KEY_SECRET
+    }
+    
+    try:
+        resp = requests.post(url, headers=headers, json=data, timeout=30)
+        resp.raise_for_status()
+        token = resp.json()['token']
+        logger.info("Successfully obtained Orkes token")
+        return token
+    except HTTPError as exc:
+        logger.error("Failed to get Orkes token: %s", exc)
+        raise RuntimeError("Failed to authenticate with Orkes") from exc
 
 
 def start_workflow(*, repo_url: str, mode: str = "narration") -> str:
@@ -41,28 +60,36 @@ def start_workflow(*, repo_url: str, mode: str = "narration") -> str:
     Returns:
         workflow_id: The ID returned by Orkes, used to poll status later.
     """
-    payload: Dict[str, Any] = {
+    # Get authentication token
+    token = get_orkes_token()
+    
+    url = f"{ORKES_BASE_URL}/api/workflow"
+    headers = {
+        "x-authorization": token,
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
         "name": WORKFLOW_NAME,
+        "version": 1,
         "input": {
             "repo_url": repo_url,
             "mode": mode,
         },
     }
 
-    url = f"{settings.ORKES_BASE_URL}/workflow/{WORKFLOW_NAME}"
     logger.debug("POST %s -> %s", url, payload)
 
     try:
-        resp = requests.post(url, json=payload, headers=HEADERS, timeout=30)
+        resp = requests.post(url, json=payload, headers=headers, timeout=30)
         resp.raise_for_status()
     except HTTPError as exc:
         logger.error("Orkes start workflow failed: %s", exc)
         raise RuntimeError("Failed to start workflow with Orkes") from exc
 
-    data = resp.json()
-    workflow_id = data.get("workflowId") or data.get("workflow_id")
+    workflow_id = resp.text.strip()
     if not workflow_id:
-        logger.error("Unexpected Orkes response: %s", data)
+        logger.error("Unexpected Orkes response: %s", resp.text)
         raise RuntimeError("Invalid response from Orkes: missing workflowId")
 
     logger.info("Started workflow %s for repo %s", workflow_id, repo_url)
@@ -79,11 +106,18 @@ def get_workflow_status(workflow_id: str) -> Dict[str, Any]:
         A dict containing the workflow status and any outputs provided by
         your workflow (e.g., base64 audio blob).
     """
-    url = f"{settings.ORKES_BASE_URL}/workflow/{workflow_id}"
+    token = get_orkes_token()
+    
+    url = f"{ORKES_BASE_URL}/api/workflow/{workflow_id}?summarize=true"
+    headers = {
+        "x-authorization": token,
+        "Content-Type": "application/json"
+    }
+    
     logger.debug("GET %s", url)
 
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=20)
+        resp = requests.get(url, headers=headers, timeout=20)
         resp.raise_for_status()
     except HTTPError as exc:
         logger.error("Orkes status fetch failed: %s", exc)
@@ -92,24 +126,75 @@ def get_workflow_status(workflow_id: str) -> Dict[str, Any]:
     data: Dict[str, Any] = resp.json()
     return data
 
+# ------------------ CONFIGURABLE VOICES ------------------
+def get_voice(index: int) -> str:
+    return "brandon" if index % 2 == 0 else "elowen"
 
-def extract_audio_blob(workflow_id: str) -> bytes:
+# ------------------ ASYNC LMNT REQUEST ------------------
+async def fetch_tts(session: aiohttp.ClientSession, text: str, voice: str) -> bytes:
+    payload = {
+        "voice": voice,
+        "text": text,
+        "model": "blizzard",
+        "language": "auto",
+        "format": "mp3",
+        "sample_rate": 24000,
+        "seed": 123,
+        "top_p": 0.8,
+        "temperature": 1
+    }
+    headers = {"X-API-Key": LMNT_API_KEY}
+    async with session.post(LMNT_API_URL, json=payload, headers=headers) as response:
+        response.raise_for_status()
+        return await response.read()
+
+# ------------------ MAIN ASYNC LOGIC ------------------
+async def process_conversation(conversation: List[str]) -> List[bytes]:
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_tts(session, text, get_voice(i)) for i, text in enumerate(conversation)]
+        return await asyncio.gather(*tasks)
+
+# ------------------ MERGE + UPLOAD ------------------
+def merge_and_upload(audio_chunks: List[bytes]) -> str:
+    merged = AudioSegment.empty()
+    for chunk in audio_chunks:
+        audio = AudioSegment.from_file(io.BytesIO(chunk), format="mp3")
+        merged += audio
+
+    buffer = io.BytesIO()
+    merged.export(buffer, format="mp3")
+    buffer.seek(0)
+
+    s3 = boto3.client("s3")
+    key = str(uuid.uuid4())
+    s3.upload_fileobj(buffer, AWS_S3_BUCKET, key, ExtraArgs={"ContentType": "audio/mpeg"})
+    return f"https://{AWS_S3_BUCKET}.s3.amazonaws.com/{key}"
+
+# ------------------ ENTRY POINT ------------------
+def get_audio_file(conversation: List[str]) -> str:
+    """Run TTS on each text chunk, merge, upload to S3, and return the public URL."""
+    try:
+        audio_results = asyncio.run(process_conversation(conversation))
+        return merge_and_upload(audio_results)
+    except Exception as e:
+        raise RuntimeError(f"Error generating audio: {e}")
+
+# ------------------ S3-BASED EXTRACTOR ------------------
+def extract_audio_via_s3(workflow_id: str) -> StreamingResponse:
     """
-    Fetches base64-encoded audio blob from Orkes workflow and decodes it to bytes.
-
-    Args:
-        workflow_id: The ID of the completed Orkes workflow.
-
-    Returns:
-        MP3 file content as raw bytes.
+    Fetches the workflow summary, generates audio via LMNT, uploads to S3,
+    and streams the MP3 bytes back.
     """
     data = get_workflow_status(workflow_id)
-
+    print(json.dumps(data, indent=2))
     if data.get("status") != "COMPLETED":
-        raise RuntimeError("Workflow is not completed yet.")
+        raise RuntimeError(f"Workflow not completed yet: {data.get('status')}")
 
-    audio_b64 = data.get("output", {}).get("audio_blob_base64")
-    if not audio_b64:
-        raise RuntimeError("Audio blob not found in workflow output.")
+    summary = data.get("output", {}).get("summary")
+    if not isinstance(summary, list):
+        raise RuntimeError("Workflow output missing 'summary' list")
 
-    return base64.b64decode(audio_b64)
+    s3_url = get_audio_file(summary)
+    resp = requests.get(s3_url, timeout=20)
+    resp.raise_for_status()
+    return StreamingResponse(io.BytesIO(resp.content), media_type="audio/mpeg")
