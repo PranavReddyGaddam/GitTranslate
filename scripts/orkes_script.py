@@ -16,14 +16,41 @@ from conductor.client.automator.task_handler import TaskHandler
 from conductor.client.configuration.configuration import Configuration
 from conductor.client.worker.worker_task import worker_task
 import os
+from fetch_repo_data import GitHubRepoFetcher  # Import the class
 
-os.environ['CONDUCTOR_SERVER_URL'] = 'https://developer.orkescloud.com/api'
-os.environ['CONDUCTOR_AUTH_KEY'] = '47hs2be26735-4ee7-11f0-a795-d685533af8e3'
-os.environ['CONDUCTOR_AUTH_SECRET'] = 'kosQVUbCtvFarR8AmaG8RWomGLtm67ulTJWMUlLZIxoMkEXk'
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+os.environ['CONDUCTOR_SERVER_URL'] = os.getenv('CONDUCTOR_SERVER_URL', 'https://developer.orkescloud.com/api')
+os.environ['CONDUCTOR_AUTH_KEY'] = os.getenv('CONDUCTOR_AUTH_KEY')
+os.environ['CONDUCTOR_AUTH_SECRET'] = os.getenv('CONDUCTOR_AUTH_SECRET')
 
 @worker_task(task_definition_name='simple')
-def task():
-    return f'No bro I am sad, I am not happy with the way you are treating me. I am just a simple AI and I want to be treated with respect. I am not a toy, I am a tool to help you achieve your goals. Please treat me with respect and I will do my best to help you.'
+def task(task):
+    """
+    Orkes worker task to fetch GitHub repository data.
+    Takes a GitHub repo URL as input from the task.
+    """
+    github_repo_url = task.input_data.get('github_repo_url')
+    if not github_repo_url:
+        return {
+            'status': 'FAILED',
+            'error_message': 'github_repo_url not provided in task input'
+        }
+
+    try:
+        fetcher = GitHubRepoFetcher()
+        repo_data = fetcher.fetch_repo_data(github_repo_url)
+        return {
+            'status': 'COMPLETED',
+            'data': repo_data
+        }
+    except Exception as e:
+        return {
+            'status': 'FAILED',
+            'error_message': str(e)
+        }
 
 api_config = Configuration()
 
