@@ -32,7 +32,7 @@ data = {
     "version": 1,
     "input": {
         "github_url": "https://github.com/streamlit/streamlit",
-        "lang": "english"
+        "lang": "hindi"
     }
 }
 
