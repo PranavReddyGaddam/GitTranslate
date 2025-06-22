@@ -24,6 +24,7 @@ def get_voice(index):
 
 # ------------------ ASYNC LMNT REQUEST ------------------
 async def fetch_tts(session, text, voice):
+    text = text.lstrip("Expert:").lstrip("Host:")
     payload = {
         "voice": voice,
         "text": text,
@@ -46,7 +47,6 @@ async def fetch_tts(session, text, voice):
 
 # ------------------ MAIN ASYNC LOGIC ------------------
 async def process_conversation(conversation):
-    conversation = conversation.lstrip("Expert").lstrip("Host")
     async with aiohttp.ClientSession() as session:
         tasks = [
             fetch_tts(session, text, get_voice(i))

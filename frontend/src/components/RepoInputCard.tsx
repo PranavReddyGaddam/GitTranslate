@@ -44,7 +44,7 @@ interface RepoInputCardProps {
 
 export function RepoInputCard({ onPodcast, isGenerating }: RepoInputCardProps) {
   const [repoUrl, setRepoUrl] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("es");
+  const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [error, setError] = useState("");
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,6 +96,13 @@ export function RepoInputCard({ onPodcast, isGenerating }: RepoInputCardProps) {
               Select a language:
             </Label>
             <div className="grid grid-cols-3 gap-4">
+                <LanguageButton
+                  language="English"
+                  code="english"
+                  flag="us"
+                  selected={selectedLanguage === "english"}
+                  onClick={setSelectedLanguage}
+                />
               <LanguageButton
                 language="Mandarin"
                 code="mandarin"
