@@ -11,6 +11,9 @@
 #
 # 4. Run the Python script (replace script.py with your actual script name):
 #    python script.py
+import json
+from functools import cache, lru_cache
+from typing import List
 
 from conductor.client.automator.task_handler import TaskHandler
 from conductor.client.configuration.configuration import Configuration
@@ -26,6 +29,7 @@ os.environ['CONDUCTOR_SERVER_URL'] = os.getenv('CONDUCTOR_SERVER_URL', 'https://
 os.environ['CONDUCTOR_AUTH_KEY'] = os.getenv('CONDUCTOR_AUTH_KEY')
 os.environ['CONDUCTOR_AUTH_SECRET'] = os.getenv('CONDUCTOR_AUTH_SECRET')
 
+
 @worker_task(task_definition_name='simple')
 def task(github_url: str = None, lang: str = None, ):
     """
@@ -33,7 +37,7 @@ def task(github_url: str = None, lang: str = None, ):
     Takes a GitHub repo URL as input from the task.
     """
     github_repo_url = github_url
-    print("processing task with github_repo_url:", github_repo_url)
+    print("processing task with github_repo_url:", github_repo_url, "language:", lang)
     if not github_repo_url:
         return {
             'status': 'FAILED',
@@ -52,6 +56,24 @@ def task(github_url: str = None, lang: str = None, ):
             'status': 'FAILED',
             'error_message': str(e)
         }
+
+
+@worker_task(task_definition_name='text2speech')
+def text2speech(summary: str = None, lang: str = None, ):
+    """
+    Orkes worker task to fetch GitHub repository data.
+    Takes a GitHub repo URL as input from the task.
+    """
+    print('processing task with summary:', summary, "language:", lang)
+    try:
+        summary = json.loads(summary)
+        s3link = text2speech(summary)
+    except Exception as e:
+        return "Sorry I could not parse the summary. Please try again."
+
+    print("processing task with summary:", summary)
+    return s3link
+
 
 api_config = Configuration()
 
