@@ -98,23 +98,23 @@ export function RepoInputCard({ onPodcast, isGenerating }: RepoInputCardProps) {
             <div className="grid grid-cols-3 gap-4">
               <LanguageButton
                 language="Mandarin"
-                code="zh"
+                code="mandarin"
                 flag="cn"
-                selected={selectedLanguage === "zh"}
+                selected={selectedLanguage === "mandarin"}
                 onClick={setSelectedLanguage}
               />
               <LanguageButton
                 language="Spanish"
-                code="es"
+                code="spanish"
                 flag="es"
-                selected={selectedLanguage === "es"}
+                selected={selectedLanguage === "spanish"}
                 onClick={setSelectedLanguage}
               />
               <LanguageButton
                 language="Hindi"
-                code="hi"
+                code="hindi"
                 flag="in"
-                selected={selectedLanguage === "hi"}
+                selected={selectedLanguage === "hindi"}
                 onClick={setSelectedLanguage}
               />
             </div>

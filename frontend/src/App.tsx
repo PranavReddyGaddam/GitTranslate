@@ -32,7 +32,7 @@ function App() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          repo_url: repoUrl,
+          github_url: repoUrl,
           language: language
         })
       });
