@@ -104,13 +104,6 @@ export function RepoInputCard({ onPodcast, isGenerating }: RepoInputCardProps) {
                   onClick={setSelectedLanguage}
                 />
               <LanguageButton
-                language="Mandarin"
-                code="mandarin"
-                flag="cn"
-                selected={selectedLanguage === "mandarin"}
-                onClick={setSelectedLanguage}
-              />
-              <LanguageButton
                 language="Spanish"
                 code="spanish"
                 flag="es"
