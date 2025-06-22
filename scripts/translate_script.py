@@ -17,7 +17,7 @@ import os
 import logging
 from typing import Dict, Any, Optional
 from anthropic import Anthropic
-from utils import (
+from scripts.utils import (
     read_input, write_output, create_error_response, create_success_response,
     validate_required_fields, setup_logging
 )

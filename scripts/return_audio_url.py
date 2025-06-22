@@ -16,7 +16,7 @@ import argparse
 import os
 import logging
 from typing import Dict, Any, Optional
-from utils import (
+from scripts.utils import (
     read_input, write_output, create_error_response, create_success_response,
     validate_required_fields, setup_logging, get_audio_output_dir
 )

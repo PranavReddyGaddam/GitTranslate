@@ -16,7 +16,7 @@ from conductor.client.automator.task_handler import TaskHandler
 from conductor.client.configuration.configuration import Configuration
 from conductor.client.worker.worker_task import worker_task
 import os
-from fetch_repo_data import GitHubRepoFetcher  # Import the class
+from scripts.fetch_repo_data import GitHubRepoFetcher  # Import the class
 
 # Load environment variables from .env file
 from dotenv import load_dotenv

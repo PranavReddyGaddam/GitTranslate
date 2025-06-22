@@ -4,7 +4,7 @@ import os
 import logging
 from typing import Dict, Any, Optional
 import anthropic
-from utils import create_success_response, create_error_response, validate_required_fields
+from scripts.utils import create_success_response, create_error_response, validate_required_fields
 
 # Setup basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

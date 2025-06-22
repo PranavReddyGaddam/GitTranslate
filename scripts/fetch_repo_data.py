@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import logging
 
 # Local imports
-from utils import create_success_response, create_error_response, get_file_content_from_repo
+from scripts.utils import create_success_response, create_error_response, get_file_content_from_repo
 
 # Setup basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

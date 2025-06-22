@@ -18,7 +18,7 @@ import logging
 import requests
 import time
 from typing import Dict, Any, Optional, List, Tuple
-from utils import (
+from scripts.utils import (
     read_input, write_output, create_error_response, create_success_response,
     validate_required_fields, setup_logging, ensure_directory_exists, generate_uuid,
     get_audio_output_dir, sanitize_filename
