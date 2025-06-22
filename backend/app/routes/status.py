@@ -15,7 +15,7 @@ async def get_status(workflow_id: str):
         if data.get("status") != "COMPLETED":
             return {"status": data["status"]}
         else:
-            return data
+            return {"status": data["status"],  "result": data['output']['data']['result']}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

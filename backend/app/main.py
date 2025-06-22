@@ -32,8 +32,8 @@ def create_app() -> FastAPI:
     # CORS: allow frontend (e.g., Vercel) to call this API
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
+        allow_origins=["*"],  # TODO: tighten for production
+        allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
     )
