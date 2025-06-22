@@ -4,4 +4,7 @@ python-dotenv>=1.0.0
 uuid>=1.30
 PyJWT>=2.8.0
 PyGithub>=2.1.1
-pathspec>=0.11.0 
+pathspec>=0.11.0
+aiohttp
+pydub
+boto3

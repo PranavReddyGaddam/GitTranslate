@@ -71,7 +71,7 @@ def text2speech(summary: str = None, lang: str = None, ):
     try:
         summary = json.loads(summary)
         print('Summary loaded:')
-        s3link = get_audio_file(summary, lang)
+        s3link = get_audio_file(summary)
     except Exception as e:
         print("Error processing summary:", e)
         return "Sorry I could not parse the summary. Please try again."
