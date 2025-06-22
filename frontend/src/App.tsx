@@ -26,7 +26,7 @@ function App() {
       }, 100);
 
     try {
-      const response = await fetch("http://3.95.215.8:8000/api/generate", {
+      const response = await fetch("https://3.95.215.8/api/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -53,7 +53,7 @@ function App() {
   
   const checkWorkflowStatus = async (id: string) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/status/${id}`);
+      const response = await fetch(`https://127.0.0.1/api/status/${id}`);
 
       if (!response.ok) {
         if (response.status !== 404) {
