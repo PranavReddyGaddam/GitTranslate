@@ -18,7 +18,7 @@ async def generate_podcast(req: GenerateRequest):
     Returns the workflow ID to be used for status polling.
     """
     try:
-        print(f"🚀 Starting workflow for repo: {req.github_url}")
+        print(f"🚀 Starting workflow for repo: {req.github_url} & {req.language}")
         
         workflow_id = start_workflow(
             repo_url=str(req.github_url),
