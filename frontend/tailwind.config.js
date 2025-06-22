@@ -7,6 +7,9 @@ export default {
   theme: {
     extend: {
       colors: {
+        'retro-peach': '#FDD8B2',
+        'retro-lavender': '#E1D5E7',
+        'retro-blue': '#bfdbfe',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -40,6 +43,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        retro: {
+          peach: '#fed7aa',
+          orange: '#fb923c',
+          lavender: '#e9d5ff',
+          black: '#000000',
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -48,6 +57,14 @@ export default {
       },
       animation: {
         blob: "blob 7s infinite",
+        "fade-in-up": "fadeInUp 0.5s ease-in-out",
+        float: "float 6s ease-in-out infinite",
+        "text-slide-in": "textSlideIn 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+        "aurora-breathe": "auroraBreathe 8s ease-in-out infinite",
+        "card-scale-in": "cardScaleIn 0.5s ease-out",
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "retro-shadow": "retro-shadow 1.5s infinite"
       },
       keyframes: {
         blob: {
@@ -64,6 +81,42 @@ export default {
             transform: "translate(0px, 0px) scale(1)",
           },
         },
+        fadeInUp: {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(10px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
+        float: {
+          "0%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-20px)" },
+          "100%": { transform: "translateY(0px)" },
+        },
+        textSlideIn: {
+          "0%": { transform: "translateY(100%)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        auroraBreathe: {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.3" },
+          "50%": { transform: "scale(1.1)", opacity: "0.5" },
+        },
+        cardScaleIn: {
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "retro-shadow": {
+          "0%": { boxShadow: "8px 8px 0 0 black" },
+          "50%": { boxShadow: "12px 12px 0 0 black" },
+          "100%": { boxShadow: "8px 8px 0 0 black" },
+        }
       },
     },
   },

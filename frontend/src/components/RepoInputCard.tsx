@@ -1,116 +1,126 @@
-import React, { useState } from 'react';
-import { Card, CardContent } from './ui/card';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import { Mic } from 'lucide-react';
-import { isValidGitHubRepoUrl } from '../lib/validation';
+import { Button } from "./ui/button";
+import {
+  Card,
+  CardContent,
+} from "./ui/card";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Mic } from "lucide-react";
+import { useState } from "react";
 
-interface RepoInputCardProps {
-  onGeneratePodcast: (repoUrl: string, language: string) => void;
-  isLoading?: boolean;
+const GITHUB_REPO_URL_REGEX = new RegExp('^https://github\\.com/[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$');
+
+interface LanguageButtonProps {
+  language: string;
+  code: string;
+  flag: string;
+  selected: boolean;
+  onClick: (code: string) => void;
 }
 
-const languages = [
-  { name: 'Mandarin', flag: '🇨🇳' },
-  { name: 'Spanish', flag: '🇪🇸' },
-  { name: 'Hindi', flag: '🇮🇳' }
-];
+const LanguageButton = ({ language, code, flag, selected, onClick }: LanguageButtonProps) => (
+  <Button
+    variant="outline"
+    onClick={() => onClick(code)}
+    className={`flex items-center justify-center space-x-2 rounded-md border-2 border-black py-6 text-lg transition-all duration-200 text-black ${selected ? 'bg-retro-blue hover:bg-blue-300' : 'bg-white hover:bg-gray-100'}`}
+    style={{
+      boxShadow: '4px 4px 0 0 #000',
+      transform: selected ? 'translate(2px, 2px)' : 'none',
+    }}
+  >
+    <img
+      src={`https://flagcdn.com/w20/${flag}.png`}
+      alt={language}
+      className="h-5 w-5 rounded-full"
+    />
+    <span>{language}</span>
+  </Button>
+);
 
-export const RepoInputCard: React.FC<RepoInputCardProps> = ({ 
-  onGeneratePodcast, 
-  isLoading = false 
-}) => {
-  const [repoUrl, setRepoUrl] = useState('');
-  const [isValidUrl, setIsValidUrl] = useState(true);
-  const [selectedLanguage, setSelectedLanguage] = useState('');
+interface RepoInputCardProps {
+  onPodcast: (repoUrl: string, language: string) => void;
+  isGenerating: boolean;
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (repoUrl.trim() && isValidGitHubRepoUrl(repoUrl.trim()) && selectedLanguage) {
-      onGeneratePodcast(repoUrl.trim(), selectedLanguage);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSubmit(e);
-    }
-  };
+export function RepoInputCard({ onPodcast, isGenerating }: RepoInputCardProps) {
+  const [repoUrl, setRepoUrl] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("es");
+  const [error, setError] = useState("");
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value;
-    setRepoUrl(url);
-    
-    if (url.trim()) {
-      setIsValidUrl(isValidGitHubRepoUrl(url.trim()));
-    } else {
-      setIsValidUrl(true);
+    setRepoUrl(e.target.value);
+    if (error) {
+      setError("");
     }
   };
 
-  const isFormValid = repoUrl.trim() && isValidUrl && !!selectedLanguage;
+  const validateUrl = () => {
+    return GITHUB_REPO_URL_REGEX.test(repoUrl);
+  };
+
+  const handleSubmit = () => {
+    if (validateUrl()) {
+      onPodcast(repoUrl, selectedLanguage);
+    } else {
+      setError("Please enter a valid GitHub repository URL.");
+    }
+  };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardContent className="p-8 space-y-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex gap-2">
+    <div className="w-full max-w-2xl mx-auto font-sans">
+      <Card className="bg-transparent border-none shadow-none">
+        <CardContent className="space-y-6 p-8 bg-white rounded-lg" style={{ boxShadow: '0 0 0 2px black, 8px 8px 0 0 black' }}>
+          <div className="flex w-full items-center space-x-4">
+            <div className="flex-grow">
               <Input
                 type="url"
                 placeholder="https://github.com/username/repo"
                 value={repoUrl}
                 onChange={handleUrlChange}
-                onKeyPress={handleKeyPress}
-                className={`flex-1 ${!isValidUrl && repoUrl.trim() ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                disabled={isLoading}
+                className="py-6 px-4 border-2 border-black rounded-md bg-retro-blue focus:ring-2 focus:ring-blue-400 placeholder:text-slate-600"
+                style={{ boxShadow: 'inset 2px 2px 0 0 #00000040' }}
               />
-              <Button 
-                type="submit" 
-                disabled={!isFormValid || isLoading}
-                className="px-6"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Processing...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Mic className="h-4 w-4" />
-                    Podcast
-                  </div>
-                )}
-              </Button>
             </div>
-            {!isValidUrl && repoUrl.trim() && (
-              <p className="text-sm text-red-500">
-                Please enter a valid GitHub repository URL (e.g., https://github.com/username/repo)
-              </p>
-            )}
+            <Button
+              onClick={handleSubmit}
+              disabled={isGenerating || !repoUrl || !selectedLanguage}
+              className="py-6 px-6 bg-retro-blue text-slate-800 border-2 border-black rounded-md hover:bg-blue-300 active:translate-y-px active:translate-x-px shadow-[4px_4px_0_0_black] disabled:bg-slate-200 disabled:text-slate-500 disabled:border-slate-300 disabled:shadow-none"
+            >
+              <Mic className="mr-2 h-5 w-5" />
+              {isGenerating ? "Generating..." : "Podcast"}
+            </Button>
           </div>
-        </form>
-
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Select a language:</p>
-          <div className="flex flex-wrap gap-3">
-            {languages.map((lang) => (
-              <Button
-                key={lang.name}
-                type="button"
-                variant={selectedLanguage === lang.name ? 'default' : 'outline'}
-                size="default"
-                onClick={() => setSelectedLanguage(lang.name)}
-                disabled={isLoading}
-                className="text-sm"
-              >
-                <span className="mr-2 text-lg">{lang.flag}</span>
-                {lang.name}
-              </Button>
-            ))}
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          <div className="space-y-4 pt-4">
+            <Label htmlFor="language" className="text-lg font-medium text-gray-800">
+              Select a language:
+            </Label>
+            <div className="grid grid-cols-3 gap-4">
+              <LanguageButton
+                language="Mandarin"
+                code="zh"
+                flag="cn"
+                selected={selectedLanguage === "zh"}
+                onClick={setSelectedLanguage}
+              />
+              <LanguageButton
+                language="Spanish"
+                code="es"
+                flag="es"
+                selected={selectedLanguage === "es"}
+                onClick={setSelectedLanguage}
+              />
+              <LanguageButton
+                language="Hindi"
+                code="hi"
+                flag="in"
+                selected={selectedLanguage === "hi"}
+                onClick={setSelectedLanguage}
+              />
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
-}; 
+} 
