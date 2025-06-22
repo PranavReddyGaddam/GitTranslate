@@ -24,7 +24,7 @@ from app.utils.config import settings  # Expects ORKES_KEY_ID and ORKES_KEY_SECR
 
 logger = logging.getLogger(__name__)
 
-WORKFLOW_NAME = "claude_to_gemini_using_integration"  # Update if your workflow name differs
+WORKFLOW_NAME = "GitTranslate_v3"  # Update if your workflow name differs
 ORKES_BASE_URL = "https://developer.orkescloud.com"
 
 def get_orkes_token() -> str:
@@ -49,7 +49,7 @@ def get_orkes_token() -> str:
         raise RuntimeError("Failed to authenticate with Orkes") from exc
 
 
-def start_workflow(*, repo_url: str, mode: str = "narration") -> str:
+def start_workflow( repo_url: str, language:str) -> str:
     """Kick off an Orkes workflow and return its workflow ID.
 
     Args:
@@ -73,8 +73,8 @@ def start_workflow(*, repo_url: str, mode: str = "narration") -> str:
         "name": WORKFLOW_NAME,
         "version": 1,
         "input": {
-            "repo_url": repo_url,
-            "mode": mode,
+            "github_url": repo_url,
+            "language": language,
         },
     }
 

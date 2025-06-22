@@ -5,7 +5,8 @@ from app.services.orkes import start_workflow
 router = APIRouter()
 
 class GenerateRequest(BaseModel):
-    repo_url: HttpUrl
+    github_url: HttpUrl
+    language: str = "english"  # Default to English
 
 class GenerateResponse(BaseModel):
     workflow_id: str
@@ -17,10 +18,11 @@ async def generate_podcast(req: GenerateRequest):
     Returns the workflow ID to be used for status polling.
     """
     try:
-        print(f"🚀 Starting workflow for repo: {req.repo_url}")
+        print(f"🚀 Starting workflow for repo: {req.github_url}")
         
         workflow_id = start_workflow(
-            repo_url=str(req.repo_url),
+            repo_url=str(req.github_url),
+            language=req.language
         )
         
         print(f"✅ Workflow started successfully!")
