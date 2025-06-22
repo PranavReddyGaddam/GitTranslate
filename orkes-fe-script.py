@@ -28,17 +28,16 @@ headers = {
     "Content-Type": "application/json"
 }
 data = {
-    "name": "claude_to_gemini_using_integration",
+    "name": "GitTranslate_v3",
     "version": 1,
     "input": {
-        "prompt": "Summarize the benefits of serverless architecture."
+        "github_url": "https://github.com/streamlit/streamlit",
+        "lang": "english"
     }
 }
 
 response = requests.post(url, headers=headers, data=json.dumps(data))
 workflow_id = response.text
-
-
 
 url = f"https://developer.orkescloud.com/api/workflow/{workflow_id}?summarize=true"
 
@@ -61,7 +60,4 @@ while True:
         print("Workflow failed.")
         break
     else:
-        print("Workflow is still running...")
-
-
-
+        print(f"Workflow is still running... {workflow_id}")
