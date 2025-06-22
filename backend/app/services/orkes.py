@@ -74,7 +74,7 @@ def start_workflow( repo_url: str, language:str) -> str:
         "version": 1,
         "input": {
             "github_url": repo_url,
-            "language": language,
+            "lang": language,
         },
     }
 
