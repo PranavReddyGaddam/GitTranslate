@@ -1,13 +1,15 @@
 import os
 import argparse
 import json
+from functools import lru_cache
+
 from github import Github, Auth
 from dotenv import load_dotenv
 import logging
 
 # Local imports
 from scripts.utils import create_success_response, create_error_response, get_file_content_from_repo
-
+import random
 # Setup basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -89,6 +91,7 @@ class GitHubRepoFetcher:
             return all_files
 
 
+    @lru_cache(maxsize=128)
     def fetch_repo_data(self, repo_url):
         """
         Main method to fetch all relevant data for a repository.
@@ -98,6 +101,9 @@ class GitHubRepoFetcher:
             repo = self._get_repo_object(repo_url)
             readme_content = get_file_content_from_repo(repo, "README.md")
             file_tree = self._get_file_tree(repo)
+
+            if len(file_tree) > 5000:
+                file_tree = random.sample(file_tree, 5000)
             
             return {
                 "repo_name": repo.full_name,
