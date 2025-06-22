@@ -107,18 +107,18 @@ def get_workflow_status(workflow_id: str) -> Dict[str, Any]:
         your workflow (e.g., base64 audio blob).
     """
     token = get_orkes_token()
-    
     url = f"{ORKES_BASE_URL}/api/workflow/{workflow_id}?summarize=true"
     headers = {
         "x-authorization": token,
         "Content-Type": "application/json"
     }
-
     try:
-        resp = requests.get(url, headers=headers)
-        print("Output:", resp.json()['output']['data'])
+        resp = requests.get(url, headers=headers, timeout=20)
+        resp.raise_for_status()
+        try:
+            data = resp.json()
+        except Exception:
+            data = {"raw_response": resp.text}
+        return data
     except HTTPError as exc:
-        logger.error("Orkes status fetch failed: %s", exc)
-        raise RuntimeError("Failed to fetch workflow status from Orkes") from exc
-
-    return resp.json()['output']['data']
+        raise RuntimeError(f"Failed to fetch workflow status from Orkes: {exc}")
